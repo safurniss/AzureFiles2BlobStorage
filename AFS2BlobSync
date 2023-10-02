@@ -1,0 +1,113 @@
+Param (
+[Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]
+[String] $AzureSubscriptionName,
+[Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]
+[String] $resourceGroup,
+[Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]
+[String] $storageAccountBlobName,
+[Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]
+[String] $storageAccountFileName,
+[Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]
+[String] $storageContainerName,
+[Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]
+[String] $storageFileShareName,
+[Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]
+[String] $srcExportFolder,
+[Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]
+[String] $srcExportFile,
+[Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]
+[String] $dstExportFolder,
+[Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]
+[String] $dstExportFile,
+[Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]
+[String] $srcImportFolder,
+[Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]
+[String] $srcImportFile,
+[Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]
+[String] $dstImportFolder,
+[Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]
+[String] $dstImportFile
+)
+
+$srcExportPath = ($srcExportFolder + "/" + $srcExportFile)
+$dstExportPath = ($dstExportFolder + "/" + $dstExportFile)
+$srcImportPath = ($srcImportFolder + "/" + $srcImportFile)
+$dstImportPath = ($dstImportFolder + "/" + $dstImportFile)
+
+# Ensures you do not inherit an AzContext in your runbook
+Disable-AzContextAutosave -Scope Process
+
+# Connect to Azure with system-assigned managed identity (automation account)
+Connect-AzAccount -Identity
+#Connect-AzAccount
+
+# SOURCE Azure Subscription
+Set-AzContext -SubscriptionName $AzureSubscriptionName
+
+# Get Storage Account Key for Blob
+$storageAccountBlob = Get-AzStorageAccount -ResourceGroupName $resourceGroup -Name $storageAccountBlobName
+# Get Storage Account Key for File
+$storageAccountFile = Get-AzStorageAccount -ResourceGroupName $resourceGroup -Name $storageAccountFileName
+
+# Set AzStorageContext for Blob
+$ContextBlob = $storageAccountBlob.Context
+
+# Set AzStorageContext for File
+$ContextFile = $storageAccountFile.Context
+
+# Get LastModified timestamp
+$ImportBlobModDate = (Get-AzStorageBlob -Container $storageContainerName -Blob $srcImportPath -Context $ContextBlob -ErrorAction SilentlyContinue).LastModified.DateTime
+#Write-Output "ImportBlobDate " $ImportBlobModDate
+
+$ImportFileModDate = (Get-AzStorageFile -ShareName $storageFileShareName -Path $dstImportPath -Context $ContextFile -ErrorAction SilentlyContinue).LastModified.DateTime
+#Write-Output "ImportFileDate " $ImportFileModDate
+
+$ExportBlobModDate = (Get-AzStorageBlob -Container $storageContainerName -Blob $dstExportPath -Context $ContextBlob -ErrorAction SilentlyContinue).LastModified.DateTime
+#Write-Output "ExportBlobDate " $ExportBlobModDate
+
+$ExportFileModDate = (Get-AzStorageFile -ShareName $storageFileShareName -Path $srcExportPath -Context $ContextFile -ErrorAction SilentlyContinue).LastModified.DateTime
+#Write-Output "ExportFileDate " $ExportFileModDate
+
+if([string]::IsNullOrEmpty($ImportBlobModDate))
+	{
+		# No file to move from Blob Container to FileShare
+        # Write-Output "no import file exists"
+	}
+else
+	{
+        if([string]::IsNullOrEmpty($ImportFileModDate))
+			{
+				# Write-Output "copying blob to file"
+                # Start the copy from Azure Blob Storage to Files
+				Start-AzStorageFileCopy -SrcContainerName $storageContainerName -SrcBlobName $srcImportPath -Context $ContextBlob -DestShareName $storageFileShareName -DestFilePath $dstImportPath -DestContext $ContextFile -Force
+			}
+		elseif($ImportBlobModDate -gt $ImportFileModDate)
+			{
+				# Write-Output "overwiting blob to file"
+                # Start the copy from Azure Blob Storage to Files
+				Start-AzStorageFileCopy -SrcContainerName $storageContainerName -SrcBlobName $srcImportPath -Context $ContextBlob -DestShareName $storageFileShareName -DestFilePath $dstImportPath -DestContext $ContextFile -Force
+			}
+	}
+	
+if([string]::IsNullOrEmpty($ExportFileModDate))
+	{
+		# No file to move from FileShare Blob to Container 
+        # Write-Output "no export file exists"
+	}
+else
+	{
+		if([string]::IsNullOrEmpty($ExportBlobModDate))
+			{
+				# Write-Output "copying file to blob"
+                # Start the copy from Azure Files to Azure Blob Storage
+				Start-AzStorageBlobCopy -SrcShareName $storageFileShareName -SrcFilePath $srcExportPath -Context $ContextFile -DestContainer $storageContainerName -DestBlob $dstExportPath -DestContext $ContextBlob -Force
+			}
+		elseif($ExportFileModDate -gt $ExportBlobModDate)
+			{
+				# Write-Output "overwriting file to blob"
+                # Start the copy from Azure Files to Azure Blob Storage
+				Start-AzStorageBlobCopy -SrcShareName $storageFileShareName -SrcFilePath $srcExportPath -Context $ContextFile -DestContainer $storageContainerName -DestBlob $dstExportPath -DestContext $ContextBlob -Force
+			}
+	}
+
+Disconnect-AzAccount
