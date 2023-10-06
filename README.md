@@ -1,19 +1,19 @@
 # AzureFiles2BlobStorage
 
 .SYNOPSIS
-   This PowerShell script is intended to be run by an Azure Automation Account. The script
+   This PowerShell script is intended to be run by an Azure Functional App. The script
    will copy files from an Azure Files Share to an Azure Blob Container and overwrite existing files.
 
 .AUTHOR
 	Stephen Furniss
 
 .DESCRIPTION
- 	This script uses an Azure Automation Account running as its Managed Identity to automate to transfer of
-	files between an Azure File Share and an Azure Blob Container using PowerShell via a Runbook.
+ 	This script uses an Azure Functional App running as its Managed Identity to automate to transfer of
+	files between an Azure File Share and an Azure Blob Container using PowerShell.
 
 .REQUIREMENTS
 	PowerShell Version:
-	PowerShell Modules: Az.Accounts,Az.ContainerInstance,Az.Storage
+	PowerShell Modules:
 
 .PARAMETER <paramName>
    $AzureSubscriptionName - the name of your Azure subscription which the storage accounts and 
@@ -33,17 +33,17 @@
    $dstImportFile - the name of the file we will create in the File Share.
 
 .EXAMPLE PARAMETERS TO PASS
-  $AzureSubscriptionName = "platform-sub-prod-001"
-  $resourceGroup = "rg-claimscontrol-prod-ukwest-001"
-  $storageAccountBlobName = "stclaimscontrolsftp"
-  $storageAccountFileName = "stclaimscontrolfiles"
-  $storageContainerName = "claimscontrol"
-  $storageFileShareName = "claimscontrol"
+  $AzureSubscriptionName = "mysubscription-001"
+  $resourceGroup = "rg-myapp-ukwest-001"
+  $storageAccountBlobName = "sablobftp"
+  $storageAccountFileName = "safileaccount"
+  $storageContainerName = "my-container"
+  $storageFileShareName = "my-file-share"
   $srcExportFolder = "ToSUPPLIER"
   $srcExportFile = "SupplierExport.csv"
   $dstExportFolder = "ToSUPPLIER"
   $dstExportFile = "SupplierExport.csv"
-  $srcImportFolder = "ToSAP"
-  $srcImportFile = "SAPImport.csv"
-  $dstImportFolder = "ToSAP"
-  $dstImportFile = "SAPImport.csv"
+  $srcImportFolder = "ToSYSTEM"
+  $srcImportFile = "SYSTEMImport.csv"
+  $dstImportFolder = "ToSYSTEM"
+  $dstImportFile = "SYSTEMImport.csv"
