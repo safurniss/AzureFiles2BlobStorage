@@ -1,33 +1,17 @@
-Param (
-[Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]
-[String] $AzureSubscriptionName,
-[Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]
-[String] $resourceGroup,
-[Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]
-[String] $storageAccountBlobName,
-[Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]
-[String] $storageAccountFileName,
-[Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]
-[String] $storageContainerName,
-[Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]
-[String] $storageFileShareName,
-[Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]
-[String] $srcExportFolder,
-[Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]
-[String] $srcExportFile,
-[Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]
-[String] $dstExportFolder,
-[Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]
-[String] $dstExportFile,
-[Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]
-[String] $srcImportFolder,
-[Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]
-[String] $srcImportFile,
-[Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]
-[String] $dstImportFolder,
-[Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]
-[String] $dstImportFile
-)
+$AzureSubscriptionName = "mysubscription-001"
+$resourceGroup = "rg-myapp-ukwest-001"
+$storageAccountBlobName = "sablobftp"
+$storageAccountFileName = "safileaccount"
+$storageContainerName = "my-container"
+$storageFileShareName = "my-file-share"
+$srcExportFolder = "ToSUPPLIER"
+$srcExportFile = "SupplierExport.csv"
+$dstExportFolder = "ToSUPPLIER"
+$dstExportFile = "SupplierExport.csv"
+$srcImportFolder = "ToSYSTEM"
+$srcImportFile = "SYSTEMImport.csv"
+$dstImportFolder = "ToSYSTEM"
+$dstImportFile = "SYSTEMImport.csv"
 
 $srcExportPath = ($srcExportFolder + "/" + $srcExportFile)
 $dstExportPath = ($dstExportFolder + "/" + $dstExportFile)
